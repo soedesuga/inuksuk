@@ -21,6 +21,8 @@ let posHere = await new Promise((resolve, reject) => {
   });
 let latHere = posHere.coords.latitude;
 let lngHere = posHere.coords.longitude;
+let latThere;
+let lngThere;
 
 // Instantiate (and display) a map:
 map = new H.Map(
@@ -37,6 +39,14 @@ let isEdited = false;
 document.getElementById("from-search").addEventListener("click", function(){
   isEdited = true;
 });
+document.getElementById("to-search").addEventListener("click", function(){
+    map.addEventListener('tap', function(ev) {
+        const target = ev.target;
+        const pointer = ev.currentPointer;
+        const coords = map.screenToGeo(pointer.viewportX, pointer.viewportY);
+        console.log(map.screenToGeo(pointer.viewportX, pointer.viewportY));
+    });
+}, {once: true});
 
 //Use geocoording
 var service = platform.getSearchService();
@@ -119,7 +129,6 @@ function routeResponseHandler(response) {
         sectionLng.shift();
         console.log(sectionLat);
         console.log(sectionLng);
-        //xの行を記述するため、1から9の数字を繰り返しHTMLに記述する
         if (!document.getElementById("instructions").hasChildNodes()){
         section.actions.forEach((action) => {
           let tr = document.createElement('tr');
@@ -240,8 +249,8 @@ let getOrigin = await new Promise((resolve, reject) => {
     latHere = getOrigin.lat;
     lngHere = getOrigin.lng;
   };
-  let latThere = getDestination.lat;
-  let lngThere = getDestination.lng;
+  latThere = getDestination.lat;
+  lngThere = getDestination.lng;
 
 // ADD MARKERS FOR ORIGIN/DESTINATION
 const origin = {
