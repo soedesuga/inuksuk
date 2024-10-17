@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+        <title>INUKSUK</title>
+        <meta name="description" content="地図で得た情報をBluetoothで送信します。" />
+        <link href="style.css" rel="stylesheet" />
+        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+        <script type="text/javascript" charset="utf-8" src="https://js.api.here.com/v3/3.1/mapsjs-ui.js" ></script>
+        <link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.1/mapsjs-ui.css" />
+        <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-core.js"></script>
+        <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-service.js"></script>
+        <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-ui.js"></script>
+        <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js"></script>
+        
+    </head>
+    <body>
+        <a id="barButton" class="barButton">経路を検索▼</a>
+        <a id="navi" class="navi">ナビ開始</a>
+        <div id="searchBar">
+            <label for="from-search" class="searchLabel">出発地</label>
+            <input type="search" id="from-search" class="textBox" name="q" />
+            <br>
+            <label for="to-search" class="searchLabel">目的地</label>
+            <input type="search" id="to-search" class="textBox" name="q" />
+            <br>
+            <a id="searchButton" class="searchButton">検索</a>
+            <table id="instructions"></table>
+        </div>
+        <div id="mapContainer"></div>
+        <script src="main.js"></script>
+        <script>
+            let button = document.getElementById("barButton");
+            button.addEventListener("click", function(){
+                document.getElementById("searchBar").classList.toggle("active");
+            });
+        </script>
+    </body>
+</html>

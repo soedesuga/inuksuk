@@ -1,0 +1,130 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+#mapContainer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: -1;
+}
+
+.barButton {
+    user-select: none;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    height: 40px;
+    width: 120px;
+    line-height:40px;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    color: #fff;
+    background-color: #ff4040;
+    text-align: center;
+    transition: .3s;
+}
+
+.barButton:hover {
+    color: #ff4040;
+    background-color: #fff;
+    border-color: #ff4040;
+}
+
+#searchBar {
+    position: fixed;
+    top: 60px;
+    width: 300px;
+    white-space: nowrap;
+}
+
+.active{
+    visibility: hidden;
+}
+
+.textBox{
+    margin-top: 2px;
+    margin-left: 2px;
+    margin-bottom: 5px;
+    width: 250px;
+    height: 30px;
+}
+
+.textBox:focus{
+    outline: #ff4040 solid;
+}
+
+.searchLabel{
+    user-select: none;
+    margin-top: 2px;
+    margin-left: 10px;
+    color: #ff4040;
+    background-color: #fff;
+    padding: 2px 5px;
+    display: inline-block;
+    border: 2px solid #ff4040;
+    border-radius: 5px;
+}
+
+.searchButton {
+    user-select: none;
+    margin-top: 5px;
+    margin-left: 10px;
+    height: 30px;
+    width: 70px;
+    line-height:30px;
+    border: 2px solid #fff;
+    border-radius: 30px;
+    color: #fff;
+    background-color: #ff4040;
+    text-align: center;
+    padding: 2px 5px;
+    display: inline-block;
+    transition:
+        color .3s,
+        background .3s,
+        border .3s;
+}
+
+.searchButton:hover {
+    color: #ff4040;
+    background-color: #fff;
+    border-color: #ff4040;
+}
+
+#instructions{
+    user-select: none;
+    margin-top: 10px;
+    margin-left: 10px;
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+#\$obj{
+    background-color: #ff4040;
+    border-radius: 20px;
+}
+
+.navi {
+    user-select: none;
+    position: fixed;
+    top: 10px;
+    left: 150px;
+    height: 40px;
+    width: 120px;
+    line-height:40px;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    color: #fff;
+    background-color: #555555;
+    text-align: center;
+    transition: .3s;
+    pointer-events: none;
+}
+
+.navi:hover {
+    color: #ff4040;
+    background-color: #fff;
+    border-color: #ff4040;
+}
