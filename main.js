@@ -39,17 +39,24 @@ let isEdited = false;
 document.getElementById("from-search").addEventListener("click", function(){
   isEdited = true;
 });
-document.getElementById("to-search").addEventListener("click", function(){
-    map.addEventListener('tap', function(ev) {
-        const target = ev.target;
-        const pointer = ev.currentPointer;
-        const coords = map.screenToGeo(pointer.viewportX, pointer.viewportY);
-        console.log(map.screenToGeo(pointer.viewportX, pointer.viewportY));
-    });
-}, {once: true});
 
 //Use geocoording
 var service = platform.getSearchService();
+
+document.getElementById("to-search").addEventListener("click", function(){
+    map.addEventListener('tap', function(ev) {
+        const pointer = ev.currentPointer;
+        latThere = map.screenToGeo(pointer.viewportX, pointer.viewportY).lat;
+        lngThere = map.screenToGeo(pointer.viewportX, pointer.viewportY).lng;
+        service.reverseGeocode({
+            at: latThere + "," + lngThere
+          }, (result) => {
+            result.items.forEach((item) => {
+              document.getElementById("to-search").value = item.address.label;
+            });
+          }, alert);
+    }, {once: true});
+});
 
 //Auto complete the origin
 service.reverseGeocode({
