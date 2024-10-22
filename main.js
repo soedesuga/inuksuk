@@ -1,6 +1,16 @@
 //Start async function
 async function run_process(){
 
+async function sendData(msg){
+    try{
+        const data = new TextEncoder().encode(msg);
+        await characteristic.writeValue(data);
+        console.log(msg + 'sent to ESP32');
+    }catch{
+        console.log("not connected")
+    }
+}
+
 //BOILERPLATE CODE TO INITIALIZE THE MAP
 const platform = new H.service.Platform({
     'apikey': '20wVBIlsykQAt-LUrBerv8Lys3SKXB2WEiyefne5_yc'
@@ -42,6 +52,21 @@ document.getElementById("from-search").addEventListener("click", function(){
 
 //Use geocoording
 var service = platform.getSearchService();
+
+document.getElementById("from-search").addEventListener("click", function(){
+    map.addEventListener('tap', function(ev) {
+        const pointer = ev.currentPointer;
+        latThere = map.screenToGeo(pointer.viewportX, pointer.viewportY).lat;
+        lngThere = map.screenToGeo(pointer.viewportX, pointer.viewportY).lng;
+        service.reverseGeocode({
+            at: latThere + "," + lngThere
+          }, (result) => {
+            result.items.forEach((item) => {
+              document.getElementById("from-search").value = item.address.label;
+            });
+          }, alert);
+    }, {once: true});
+});
 
 document.getElementById("to-search").addEventListener("click", function(){
     map.addEventListener('tap', function(ev) {
@@ -85,6 +110,10 @@ var ui = H.ui.UI.createDefault(map, omvlayer);
 let routePolyline;
 
 document.getElementById("searchButton").addEventListener("click", async function(){
+
+let sectionLat = [];
+let sectionLng = [];
+let sectionInst = [];
 try{
     map.removeObjects(map.getObjects());
 }catch{};
@@ -93,8 +122,8 @@ function resetTable(){
     const ele = document.getElementById("instructions");
     const clone = ele.cloneNode( false ); 
     ele.parentNode.replaceChild( clone , ele ); 
-    console.log(ele);
     console.log("reset");
+    sendData("BK");
 }
 /**
  * Handler for the H.service.RoutingService8#calculateRoute call
@@ -111,31 +140,25 @@ function routeResponseHandler(response) {
         let actions = section.actions;
         // Add a marker for each maneuver
         let poly = H.geo.LineString.fromFlexiblePolyline(section.polyline).getLatLngAltArray();
-
-        let turnLat = [];
-        let turnLng = [];
-        let sectionLat = [];
-        let sectionLng = [];
+        sectionLat = [];
+        sectionLng = [];
         for (i = 0; i < actions.length; i += 1) {
           let action = actions[i];
           let bAction = actions[Math.max(i-1,0)];
-          turnLat.push(poly[action.offset * 3]);
           let lats = [];
-          for (j = bAction.offset; j <= action.offset *3 ; j += 3){
-            lats.push(poly[j * 3]);
+          for (j = bAction.offset *3; j <= action.offset *3 ; j += 3){
+            
+            lats.push(poly[j]);
           };
           sectionLat.push(lats);
-          turnLng.push(poly[action.offset * 3 + 1]);
           let lngs = [];
-          for (j = bAction.offset; j <= action.offset *3 ; j += 3){
-            lngs.push(poly[j * 3 + 1]);
+          for (j = bAction.offset *3; j <= action.offset *3 ; j += 3){
+            lngs.push(poly[j + 1]);
           };
           sectionLng.push(lngs);
         };
         sectionLat.shift();
         sectionLng.shift();
-        console.log(sectionLat);
-        console.log(sectionLng);
         if (!document.getElementById("instructions").hasChildNodes()){
         section.actions.forEach((action) => {
           let tr = document.createElement('tr');
@@ -144,11 +167,10 @@ function routeResponseHandler(response) {
           tr.appendChild(td);
           instTable.appendChild(tr);
         });
-        document.getElementById("navi").style.pointerEvents = "all";
+        sectionInst = section.actions;
         }
     });
     const multiLineString = new H.geo.MultiLineString(lineStrings);
-    const bounds = multiLineString.getBoundingBox();
 
     // Create the polyline for the route
     if (routePolyline) {
@@ -218,7 +240,6 @@ function updateRoute() {
     routingParams.via = new H.service.Url.MultiValueQueryParameter(
         waypoints.map(wp => `${wp.getGeometry().lat},${wp.getGeometry().lng}`));
     resetTable();
-    document.getElementById("navi").style.pointerEvents = "none";
     // Call the routing service with the defined parameters
     router.calculateRoute(routingParams, routeResponseHandler, console.error);
 }
@@ -269,8 +290,39 @@ const destination = {
     lng: lngThere
 };
 
+const svgMarkup = `<svg width="30" height="30" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<g id="marker">
+  <circle cx="15" cy="15" r="15" fill="#ff4040"/>
+</g></svg>`;
+const markerN = new H.map.Marker({lat : latHere, lng : lngHere}, {
+    icon: new H.map.Icon(svgMarkup,{
+        anchor: {
+            x: 10,
+            y: 10
+        }
+    }),
+    // Enable smooth dragging
+    volatility: true
+});
+const adjustMarker = map.addObject(markerN);
+const svgMarkup2 = `<svg width="30" height="30" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<g id="marker">
+  <circle cx="15" cy="15" r="15" fill="#40ff40"/>
+</g></svg>`;
+const markerM = new H.map.Marker({lat : latHere, lng : lngHere}, {
+    icon: new H.map.Icon(svgMarkup2,{
+        anchor: {
+            x: 10,
+            y: 10
+        }
+    }),
+    // Enable smooth dragging
+    volatility: true
+});
+const adjustMarker2 = map.addObject(markerM);
 const originMarker = addMarker(origin, 'A');
 const destinationMarker = addMarker(destination, 'B');
+const dragableMarker = addMarker(origin, 'O');
 
 // CALCULATE THE ROUTE BETWEEN THE TWO WAYPOINTS
 // This array holds instances of H.map.Marker representing the route waypoints
@@ -325,7 +377,8 @@ map.addEventListener('dragend', function(ev) {
         behavior.enable(H.mapevents.Behavior.Feature.PANNING);
         const coords = target.getGeometry();
         const markerId = target.getData().id;
-
+        //下の行は仮設置！！！！！！！！！！！！！！！！
+        if (markerId != 'O') {
         // Update the routing params `origin` and `destination` properties
         // in case we dragging either the origin or the destination marker
         if (markerId === 'A') {
@@ -333,8 +386,129 @@ map.addEventListener('dragend', function(ev) {
         } else if (markerId === 'B') {
             routingParams.destination = `${coords.lat},${coords.lng}`;
         }
-
         updateRoute();
+        //下の行は仮設置！！！！！！！！！！！！！！！！
+        } else {
+            let getLat = coords.lat;
+            let getLng = coords.lng;
+            let resLat;
+            let resLng;
+            let corLat;
+            let corLng;
+            let d;
+            let t;
+            let indexFromCorner;
+            sectionLat.some((lats,indexa) => {
+                let lngs = sectionLng[indexa];
+                lats.some((lat,indexb) => {
+                    let polyLat = lat;
+                    let polyLng = lngs[indexb];
+                    let poly2Lat = lats[indexb +1];
+                    let poly2Lng = lngs[indexb +1];
+                    if (poly2Lat == undefined){
+                        return true;
+                    } else {
+                    t = ((getLat - polyLat) * (poly2Lat - polyLat) + (getLng - polyLng) * (poly2Lng - polyLng)) / ((poly2Lat - polyLat) ** 2 + (poly2Lng - polyLng) ** 2);
+                    if (t <= 0){
+                        resLat = polyLat;
+                        resLng = polyLng;
+                    }else if(t >= 1){
+                        resLat = poly2Lat;
+                        resLng = poly2Lng;
+                    }else{
+                    resLat = polyLat + t * (poly2Lat - polyLat);
+                    resLng = polyLng + t * (poly2Lng - polyLng);
+                    };
+                    const R = 111320; //一度あたりの距離
+                    const deltaLat = resLat - getLat;
+                    const deltaLng = resLng - getLng;
+                    const latDistance = deltaLat * R;
+                    const lngDistance = deltaLng * R * Math.cos(getLat * Math.PI / 180);
+                    d = Math.sqrt(Math.pow(latDistance, 2) + Math.pow(lngDistance, 2));
+                    };
+                    if (d < 10 && t < 1){
+                        indexFromCorner = indexb + 1;
+                        return true;
+                    };
+                });
+                if (d < 10 && t < 1){
+                    corLat = lats[lats.length - 1];
+                    corLng = lngs[lngs.length - 1];
+                    let table = document.getElementById("instructions");
+                    Array.prototype.slice.call(table.rows).forEach(row => {
+                        row.style.color = "#000";
+                    });
+                    table.rows[indexa + 1].style.color = "#ff4040";
+                    console.log(sectionInst[indexa + 1].action);
+                    console.log(sectionInst[indexa + 1].direction);
+                    //cornerまでの道のり計算
+                    let td = 0;
+                    let index = lats.length - 1;
+                    while(true){
+                        const R = 111320; //一度あたりの距離
+                        const deltaLat = lats[index] - lats[index - 1];
+                        const deltaLng = lngs[index] - lngs[index - 1];
+                        const latDistance = deltaLat * R;
+                        const lngDistance = deltaLng * R * Math.cos(lats[index] * Math.PI / 180);
+                        const Distance = Math.sqrt(Math.pow(latDistance, 2) + Math.pow(lngDistance, 2))
+                        if (index > indexFromCorner){
+                            td += Distance;
+                            index --;
+                        }else{
+                            if (td > 100){
+                                td = 101;
+                                break;
+                            }
+                            const exLatDistance = (lats[index] - resLat) * R;
+                            const exLngDistance = (lngs[index] - resLng) * R * Math.cos(resLat * Math.PI / 180);
+                            const exDistance = Math.sqrt(Math.pow(exLatDistance, 2) + Math.pow(exLngDistance, 2));
+                            td += exDistance;
+                            break;
+                        }
+                    };
+                    console.log(td);
+                    let tdRank = 0;
+                    if(td <= 10){
+                        tdRank = 3;
+                    }else if(td > 10 && td <= 50){
+                        tdRank = 2;
+                    }else if(td >50 && td <= 100){
+                        tdRank = 1;
+                    }else{
+                        tdRank = 0;
+                    }
+                    console.log(tdRank);
+                    let dataString;
+                    if (tdRank == 0){
+                        dataString = "CL";
+                    }else{
+                        if(sectionInst[indexa + 1].direction == "right"){
+                            dataString = "R" + tdRank;
+                        }else if(sectionInst[indexa + 1].direction == "left"){
+                            dataString = "L" + tdRank;
+                        }else{
+                            dataString = "S" + tdRank;
+                        };
+                    };
+                    if (indexa == 0 && t < 0 && indexFromCorner == 1){
+                        dataString = "BK";
+                    };
+                    sendData(dataString);
+                    return true;
+                };
+            });
+            if (d < 10){
+                markerN.setGeometry(new H.geo.Point(resLat, resLng));
+                markerM.setGeometry(new H.geo.Point(corLat, corLng));
+            }else{
+                markerN.setGeometry(new H.geo.Point(getLat, getLng));
+                markerM.setGeometry(new H.geo.Point(getLat, getLng));
+                originMarker.setGeometry(new H.geo.Point(getLat, getLng));
+                routingParams.origin = `${getLat},${getLng}`;
+                updateRoute();
+            };
+        };
+        //ここまで
     }
 }, false);
 
@@ -350,62 +524,6 @@ map.addEventListener('drag', function(ev) {
         );
     }
 }, false);
-
-/**
- * Listen to the tap event to add a new waypoint
- */
-map.addEventListener('tap', function(ev) {
-    const target = ev.target;
-    const pointer = ev.currentPointer;
-    const coords = map.screenToGeo(pointer.viewportX, pointer.viewportY);
-
-    if (!(target instanceof H.map.Marker)) {
-        const marker = addMarker(coords, waypoints.length + 1);
-        waypoints.push(marker);
-        updateRoute();
-    }
-});
-
-/**
- * Listen to the dbltap event to remove a waypoint
- */
-map.addEventListener('dbltap', function(ev) {
-    const target = ev.target;
-
-    if (target instanceof H.map.Marker) {
-        // Prevent origin or destination markers from being removed
-        if (['origin', 'destination'].indexOf(target.getData().id) !== -1) {
-            return;
-        }
-
-        const markerIdx = waypoints.indexOf(target);
-        if (markerIdx !== -1) {
-            // Remove the marker from the array of way points
-            waypoints.splice(markerIdx, 1)
-            // Iterate over the remaining waypoints and update their data
-            waypoints.forEach((marker, idx) => {
-                const id = idx + 1;
-                // Update marker's id
-                marker.setData({
-                    id
-                });
-                // Update marker's icon to show its new id
-                marker.setIcon(getMarkerIcon(id))
-            });
-        }
-
-        // Remove the marker from the map
-        map.removeObject(target);
-
-        updateRoute();
-    }
-});
-});
-
-document.getElementById("navi").addEventListener("click", function(){
-if (document.getElementById("instructions").hasChildNodes()){
-    console.log("startnavi");
-};
 });
 //End async
 return;

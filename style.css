@@ -106,7 +106,7 @@ body {
     border-radius: 20px;
 }
 
-.navi {
+#connect {
     user-select: none;
     position: fixed;
     top: 10px;
@@ -116,15 +116,26 @@ body {
     line-height:40px;
     border: 2px solid #fff;
     border-radius: 5px;
-    color: #fff;
-    background-color: #555555;
     text-align: center;
     transition: .3s;
-    pointer-events: none;
+    color: #fff;
+    background-color: #ff4040;
+    pointer-events: all;
 }
 
-.navi:hover {
-    color: #ff4040;
-    background-color: #fff;
-    border-color: #ff4040;
+#sendData {
+    user-select: none;
+    position: fixed;
+    top: 10px;
+    left: 300px;
+    height: 40px;
+    width: 120px;
+    line-height:40px;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    text-align: center;
+    transition: .3s;
+    color: #fff;
+    background-color: #ff4040;
+    pointer-events: all;
 }

@@ -16,7 +16,7 @@
     </head>
     <body>
         <a id="barButton" class="barButton">経路を検索▼</a>
-        <a id="navi" class="navi">ナビ開始</a>
+        <a id="connect">接続</a>
         <div id="searchBar">
             <label for="from-search" class="searchLabel">出発地</label>
             <input type="search" id="from-search" class="textBox" name="q" />
@@ -34,6 +34,25 @@
             button.addEventListener("click", function(){
                 document.getElementById("searchBar").classList.toggle("active");
             });
+        let bleDevice;
+        let characteristic;
+
+        document.getElementById('connect').addEventListener('click', async () => {
+            try {
+                bleDevice = await navigator.bluetooth.requestDevice({
+                acceptAllDevices: true,
+                optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb']
+            });
+
+
+                const server = await bleDevice.gatt.connect();
+                const service = await server.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');
+                characteristic = await service.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');
+                console.log('Connected to ESP32');
+            } catch (error) {
+                console.log('Error: ' + error);
+            }
+        });
         </script>
     </body>
 </html>
