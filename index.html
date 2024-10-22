@@ -49,8 +49,10 @@
                 const service = await server.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');
                 characteristic = await service.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');
                 console.log('Connected to ESP32');
+                document.getElementById("connect").textContent = "接続済み";
             } catch (error) {
                 console.log('Error: ' + error);
+                document.getElementById("connect").textContent = "接続";
             }
         });
         </script>

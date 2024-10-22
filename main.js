@@ -8,6 +8,7 @@ async function sendData(msg){
         console.log(msg + 'sent to ESP32');
     }catch{
         console.log("not connected")
+        document.getElementById("connect").textContent = "接続";
     }
 }
 
