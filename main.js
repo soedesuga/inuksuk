@@ -320,10 +320,24 @@ const markerM = new H.map.Marker({lat : latHere, lng : lngHere}, {
     // Enable smooth dragging
     volatility: true
 });
+const svgMarkup3 = `<svg width="30" height="30" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<g id="marker">
+  <circle cx="15" cy="15" r="15" fill="#4040ff"/>
+</g></svg>`;
+const markerO = new H.map.Marker({lat : latHere, lng : lngHere}, {
+    icon: new H.map.Icon(svgMarkup3,{
+        anchor: {
+            x: 10,
+            y: 10
+        }
+    }),
+    // Enable smooth dragging
+    volatility: true
+});
 const adjustMarker2 = map.addObject(markerM);
 const originMarker = addMarker(origin, 'A');
 const destinationMarker = addMarker(destination, 'B');
-const dragableMarker = addMarker(origin, 'O');
+const adjustMarker3 = map.addObject(markerO);
 
 // CALCULATE THE ROUTE BETWEEN THE TWO WAYPOINTS
 // This array holds instances of H.map.Marker representing the route waypoints
@@ -389,125 +403,6 @@ map.addEventListener('dragend', function(ev) {
         }
         updateRoute();
         //下の行は仮設置！！！！！！！！！！！！！！！！
-        } else {
-            let getLat = coords.lat;
-            let getLng = coords.lng;
-            let resLat;
-            let resLng;
-            let corLat;
-            let corLng;
-            let d;
-            let t;
-            let indexFromCorner;
-            sectionLat.some((lats,indexa) => {
-                let lngs = sectionLng[indexa];
-                lats.some((lat,indexb) => {
-                    let polyLat = lat;
-                    let polyLng = lngs[indexb];
-                    let poly2Lat = lats[indexb +1];
-                    let poly2Lng = lngs[indexb +1];
-                    if (poly2Lat == undefined){
-                        return true;
-                    } else {
-                    t = ((getLat - polyLat) * (poly2Lat - polyLat) + (getLng - polyLng) * (poly2Lng - polyLng)) / ((poly2Lat - polyLat) ** 2 + (poly2Lng - polyLng) ** 2);
-                    if (t <= 0){
-                        resLat = polyLat;
-                        resLng = polyLng;
-                    }else if(t >= 1){
-                        resLat = poly2Lat;
-                        resLng = poly2Lng;
-                    }else{
-                    resLat = polyLat + t * (poly2Lat - polyLat);
-                    resLng = polyLng + t * (poly2Lng - polyLng);
-                    };
-                    const R = 111320; //一度あたりの距離
-                    const deltaLat = resLat - getLat;
-                    const deltaLng = resLng - getLng;
-                    const latDistance = deltaLat * R;
-                    const lngDistance = deltaLng * R * Math.cos(getLat * Math.PI / 180);
-                    d = Math.sqrt(Math.pow(latDistance, 2) + Math.pow(lngDistance, 2));
-                    };
-                    if (d < 10 && t < 1){
-                        indexFromCorner = indexb + 1;
-                        return true;
-                    };
-                });
-                if (d < 10 && t < 1){
-                    corLat = lats[lats.length - 1];
-                    corLng = lngs[lngs.length - 1];
-                    let table = document.getElementById("instructions");
-                    Array.prototype.slice.call(table.rows).forEach(row => {
-                        row.style.color = "#000";
-                    });
-                    table.rows[indexa + 1].style.color = "#ff4040";
-                    console.log(sectionInst[indexa + 1].action);
-                    console.log(sectionInst[indexa + 1].direction);
-                    //cornerまでの道のり計算
-                    let td = 0;
-                    let index = lats.length - 1;
-                    while(true){
-                        const R = 111320; //一度あたりの距離
-                        const deltaLat = lats[index] - lats[index - 1];
-                        const deltaLng = lngs[index] - lngs[index - 1];
-                        const latDistance = deltaLat * R;
-                        const lngDistance = deltaLng * R * Math.cos(lats[index] * Math.PI / 180);
-                        const Distance = Math.sqrt(Math.pow(latDistance, 2) + Math.pow(lngDistance, 2))
-                        if (index > indexFromCorner){
-                            td += Distance;
-                            index --;
-                        }else{
-                            if (td > 100){
-                                td = 101;
-                                break;
-                            }
-                            const exLatDistance = (lats[index] - resLat) * R;
-                            const exLngDistance = (lngs[index] - resLng) * R * Math.cos(resLat * Math.PI / 180);
-                            const exDistance = Math.sqrt(Math.pow(exLatDistance, 2) + Math.pow(exLngDistance, 2));
-                            td += exDistance;
-                            break;
-                        }
-                    };
-                    console.log(td);
-                    let tdRank = 0;
-                    if(td <= 10){
-                        tdRank = 3;
-                    }else if(td > 10 && td <= 50){
-                        tdRank = 2;
-                    }else if(td >50 && td <= 100){
-                        tdRank = 1;
-                    }else{
-                        tdRank = 0;
-                    }
-                    console.log(tdRank);
-                    let dataString;
-                    if (tdRank == 0){
-                        dataString = "CL";
-                    }else{
-                        if(sectionInst[indexa + 1].direction == "right"){
-                            dataString = "R" + tdRank;
-                        }else if(sectionInst[indexa + 1].direction == "left"){
-                            dataString = "L" + tdRank;
-                        }else{
-                            dataString = "S" + tdRank;
-                        };
-                    };
-                    if (indexa == 0 && t < 0 && indexFromCorner == 1){
-                        dataString = "BK";
-                    };
-                    sendData(dataString);
-                    return true;
-                };
-            });
-            if (d < 10){
-                markerN.setGeometry(new H.geo.Point(resLat, resLng));
-                markerM.setGeometry(new H.geo.Point(corLat, corLng));
-            }else{
-                markerN.setGeometry(new H.geo.Point(getLat, getLng));
-                markerM.setGeometry(new H.geo.Point(getLat, getLng));
-                originMarker.setGeometry(new H.geo.Point(getLat, getLng));
-                routingParams.origin = `${getLat},${getLng}`;
-                updateRoute();
-            };
         };
         //ここまで
     }
@@ -526,6 +421,146 @@ map.addEventListener('drag', function(ev) {
     }
 }, false);
 });
+
+document.addEventListener("DOMContentLoaded", function() {
+	// オプション・パラメータをセット
+	var position_options = {
+		// 高精度を要求する
+		enableHighAccuracy: true,
+		// 最大待ち時間（ミリ秒）
+		timeout: 60000,
+		// キャッシュ有効期間（ミリ秒）
+		maximumAge: 0
+	};
+	// 現在位置情報を取得
+	navigator.geolocation.watchPosition(monitor, null, position_options);
+}, false);
+
+// 位置情報取得完了時の処理
+function monitor(event) {
+    console.log("success");
+	let getLat = event.coords.latitude;
+	let getLng = event.coords.longitude;
+    markerO.setGeometry(new H.geo.Point(getLat, getLng));
+    let resLat;
+    let resLng;
+    let corLat;
+    let corLng;
+    let d;
+    let t;
+    let indexFromCorner;
+    sectionLat.some((lats,indexa) => {
+        let lngs = sectionLng[indexa];
+        lats.some((lat,indexb) => {
+            let polyLat = lat;
+            let polyLng = lngs[indexb];
+            let poly2Lat = lats[indexb +1];
+            let poly2Lng = lngs[indexb +1];
+            if (poly2Lat == undefined){
+                return true;
+            } else {
+            t = ((getLat - polyLat) * (poly2Lat - polyLat) + (getLng - polyLng) * (poly2Lng - polyLng)) / ((poly2Lat - polyLat) ** 2 + (poly2Lng - polyLng) ** 2);
+            if (t <= 0){
+                resLat = polyLat;
+                resLng = polyLng;
+            }else if(t >= 1){
+                resLat = poly2Lat;
+                resLng = poly2Lng;
+            }else{
+            resLat = polyLat + t * (poly2Lat - polyLat);
+            resLng = polyLng + t * (poly2Lng - polyLng);
+            };
+            const R = 111320; //一度あたりの距離
+            const deltaLat = resLat - getLat;
+            const deltaLng = resLng - getLng;
+            const latDistance = deltaLat * R;
+            const lngDistance = deltaLng * R * Math.cos(getLat * Math.PI / 180);
+            d = Math.sqrt(Math.pow(latDistance, 2) + Math.pow(lngDistance, 2));
+            };
+            if (d < 10 && t < 1){
+                indexFromCorner = indexb + 1;
+                return true;
+            };
+        });
+        if (d < 10 && t < 1){
+            corLat = lats[lats.length - 1];
+            corLng = lngs[lngs.length - 1];
+            let table = document.getElementById("instructions");
+            Array.prototype.slice.call(table.rows).forEach(row => {
+                row.style.color = "#000";
+            });
+            table.rows[indexa + 1].style.color = "#ff4040";
+            console.log(sectionInst[indexa + 1].action);
+            console.log(sectionInst[indexa + 1].direction);
+            //cornerまでの道のり計算
+            let td = 0;
+            let index = lats.length - 1;
+            while(true){
+                const R = 111320; //一度あたりの距離
+                const deltaLat = lats[index] - lats[index - 1];
+                const deltaLng = lngs[index] - lngs[index - 1];
+                const latDistance = deltaLat * R;
+                const lngDistance = deltaLng * R * Math.cos(lats[index] * Math.PI / 180);
+                const Distance = Math.sqrt(Math.pow(latDistance, 2) + Math.pow(lngDistance, 2))
+                if (index > indexFromCorner){
+                    td += Distance;
+                    index --;
+                }else{
+                    if (td > 100){
+                        td = 101;
+                        break;
+                    }
+                    const exLatDistance = (lats[index] - resLat) * R;
+                    const exLngDistance = (lngs[index] - resLng) * R * Math.cos(resLat * Math.PI / 180);
+                    const exDistance = Math.sqrt(Math.pow(exLatDistance, 2) + Math.pow(exLngDistance, 2));
+                    td += exDistance;
+                    break;
+                }
+            };
+            console.log(td);
+            let tdRank = 0;
+            if(td <= 10){
+                tdRank = 3;
+            }else if(td > 10 && td <= 50){
+                tdRank = 2;
+            }else if(td >50 && td <= 100){
+                tdRank = 1;
+            }else{
+                tdRank = 0;
+            }
+            console.log(tdRank);
+            let dataString;
+            if (tdRank == 0){
+                dataString = "CL";
+            }else{
+                if(sectionInst[indexa + 1].direction == "right"){
+                    dataString = "R" + tdRank;
+                }else if(sectionInst[indexa + 1].direction == "left"){
+                    dataString = "L" + tdRank;
+                }else{
+                    dataString = "S" + tdRank;
+                };
+            };
+            if (indexa == 0 && t < 0 && indexFromCorner == 1){
+                dataString = "BK";
+            };
+            sendData(dataString);
+            return true;
+        };
+    });
+    if (d < 10){
+        markerN.setGeometry(new H.geo.Point(resLat, resLng));
+        markerM.setGeometry(new H.geo.Point(corLat, corLng));
+    }else{
+        markerN.setGeometry(new H.geo.Point(getLat, getLng));
+        markerM.setGeometry(new H.geo.Point(getLat, getLng));
+        originMarker.setGeometry(new H.geo.Point(getLat, getLng));
+        routingParams.origin = `${getLat},${getLng}`;
+        updateRoute();
+    };
+
+}
+
 //End async
 return;
 };
