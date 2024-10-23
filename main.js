@@ -335,9 +335,9 @@ const markerO = new H.map.Marker({lat : latHere, lng : lngHere}, {
     volatility: true
 });
 const adjustMarker2 = map.addObject(markerM);
+const adjustMarker3 = map.addObject(markerO);
 const originMarker = addMarker(origin, 'A');
 const destinationMarker = addMarker(destination, 'B');
-const adjustMarker3 = map.addObject(markerO);
 
 // CALCULATE THE ROUTE BETWEEN THE TWO WAYPOINTS
 // This array holds instances of H.map.Marker representing the route waypoints
@@ -420,21 +420,23 @@ map.addEventListener('drag', function(ev) {
         );
     }
 }, false);
-});
 
-document.addEventListener("DOMContentLoaded", function() {
-	// オプション・パラメータをセット
-	var position_options = {
-		// 高精度を要求する
-		enableHighAccuracy: true,
-		// 最大待ち時間（ミリ秒）
-		timeout: 60000,
-		// キャッシュ有効期間（ミリ秒）
-		maximumAge: 0
-	};
-	// 現在位置情報を取得
-	navigator.geolocation.watchPosition(monitor, null, position_options);
-}, false);
+
+// オプション・パラメータをセット
+const position_options = {
+    // 高精度を要求する
+    enableHighAccuracy: true,
+    // 最大待ち時間（ミリ秒）
+    timeout: 60000,
+    // キャッシュ有効期間（ミリ秒）
+    maximumAge: 0
+};
+// 現在位置情報を取得
+navigator.geolocation.watchPosition(monitor, failed, position_options);
+
+function failed(){
+    console.log("failed");
+}
 
 // 位置情報取得完了時の処理
 function monitor(event) {
@@ -560,6 +562,8 @@ function monitor(event) {
     };
 
 }
+//end SearchButton
+});
 
 //End async
 return;
