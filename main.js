@@ -293,7 +293,7 @@ const destination = {
 
 const svgMarkup = `<svg width="30" height="30" version="1.1" xmlns="http://www.w3.org/2000/svg">
 <g id="marker">
-  <circle cx="15" cy="15" r="15" fill="#ff4040"/>
+  <circle cx="15" cy="15" r="15" fill="#0f5bff"/>
 </g></svg>`;
 const markerN = new H.map.Marker({lat : latHere, lng : lngHere}, {
     icon: new H.map.Icon(svgMarkup,{
@@ -308,7 +308,7 @@ const markerN = new H.map.Marker({lat : latHere, lng : lngHere}, {
 const adjustMarker = map.addObject(markerN);
 const svgMarkup2 = `<svg width="30" height="30" version="1.1" xmlns="http://www.w3.org/2000/svg">
 <g id="marker">
-  <circle cx="15" cy="15" r="15" fill="#40ff40"/>
+  <circle cx="10" cy="10" r="5" fill="#b3cbff"/>
 </g></svg>`;
 const markerM = new H.map.Marker({lat : latHere, lng : lngHere}, {
     icon: new H.map.Icon(svgMarkup2,{
@@ -322,7 +322,7 @@ const markerM = new H.map.Marker({lat : latHere, lng : lngHere}, {
 });
 const svgMarkup3 = `<svg width="30" height="30" version="1.1" xmlns="http://www.w3.org/2000/svg">
 <g id="marker">
-  <circle cx="15" cy="15" r="15" fill="#4040ff"/>
+  <circle cx="15" cy="15" r="0" fill="#4040ff"/>
 </g></svg>`;
 const markerO = new H.map.Marker({lat : latHere, lng : lngHere}, {
     icon: new H.map.Icon(svgMarkup3,{
